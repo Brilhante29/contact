@@ -76,7 +76,7 @@ resource "aws_subnet" "default" {
 }
 
 resource "aws_instance" "app_server" {
-  ami             = data.aws_ami.ubuntu.id
+  ami             = "ami-0abcd1234efgh5678"
   instance_type   = "t2.micro"
   key_name        = "app-ssh-key"
   subnet_id       = aws_subnet.default.id

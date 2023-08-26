@@ -1,39 +1,32 @@
-name: CI/CD Workflow
-
-on:
-  push:
-    branches:
-      - master
-
 jobs:
-  deploy:
+  provision-ec2:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    - name: Terraform Initialize
-      run: terraform -chdir=terraform init
-
-    - name: Terraform Apply
-      env:
-        AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: terraform -chdir=terraform apply -auto-approve
-
-    - name: Get EC2 IP
-      id: ec2_ip
-      run: echo "IP=$(terraform -chdir=terraform output public_ip)" >> $GITHUB_ENV
-
-    - name: Deploy to EC2
-      env:
-        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      run: |
-        echo "$PRIVATE_KEY" > deployer_key
-        chmod 600 deployer_key
-        scp -o StrictHostKeyChecking=no -i deployer_key docker-compose.yml ec2-user@${{ env.IP }}:/home/ec2-user/
-        ssh -o StrictHostKeyChecking=no -i deployer_key ec2-user@${{ env.IP }} "sudo apt-get update && sudo apt-get install -y docker docker-compose && sudo systemctl start docker && sudo systemctl enable docker && sudo docker-compose up --build -d"
+      - name: Checkout repository 
+        uses: actions/checkout@v3
+   
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: '${{ secrets.AWS_ACCESS_KEY_ID }}'
+          aws-secret-access-key: '${{ secrets.AWS_SECRET_ACCESS_KEY }}'
+          aws-region: us-east-2
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY_INSTANCE }}" > ~/.ssh/app-ssh-key.pem
+          chmod 600 ~/.ssh/app-ssh-key.pem
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - name: Terraform Apply
+        id: apply
+        env:
+          TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
+        run: |
+          cd terraform/
+          terraform init
+          terraform validate
+          terraform plan
+          terraform apply -auto-approve

@@ -21,9 +21,11 @@ jobs:
 
     - name: Terraform Apply
       env:
+        TERRAFORM_CLI_PATH: ./terraform/main.tf
         AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: terraform apply -auto-approve -var "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY_ID }}" -var "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+      run: terraform apply -auto-approve
+
 
     - name: Get EC2 IP
       id: ec2_ip

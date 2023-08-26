@@ -67,7 +67,7 @@ resource "aws_instance" "app_server" {
     connection {
       type        = "ssh"
       user        = "ubuntu"
-      private_key = var.private_key
+      private_key = file("~/.ssh/app-ssh-key.pem")
       host        = self.public_ip
     }
   }
@@ -98,15 +98,5 @@ variable "key_name" {
 
 variable "ec2_name" {
   description = "The name to use for the EC2 instance"
-  type        = string
-}
-
-variable "private_key" {
-  description = "The private key to use for the EC2 instance"
-  type        = string
-}
-
-variable "repository_url" {
-  description = "The URL of the GitHub repository to clone"
   type        = string
 }

@@ -38,6 +38,9 @@ jobs:
         id: apply
         env:
           TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
+          TF_VAR_aws_access_key: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          TF_VAR_aws_secret_key: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TF_VAR_key_name: "app-ssh-key"  # nome da chave EC2
         run: |
           cd terraform/
           terraform init
